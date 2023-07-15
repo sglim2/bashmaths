@@ -1,38 +1,72 @@
 #!/bin/bash
 
-if [[ "$#" -gt 0 ]]; then
- table=$1
-else
-  echo $0 [timestable]
-  exit
+print_to_printer=false
+table=""
+number_bar=false
+
+while getopts "pbt:" opt; do
+  case $opt in
+    p)
+      print_to_printer=true
+      ;;
+    b)
+      number_bar=true
+      ;;
+    t)
+      table=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+if [[ -z $table ]]; then
+  echo "Usage: $0 [-p] [-b] -t [timestable]"
+  exit 1
 fi
 
-# division character is  CTRL+SHIFT+U , then 00f7
-# 
-# because we use special characters, use paps (instead of enscript) to convert to postscript
+output=""
 
-(figlet "$table times table" ; 
 for i in {1..6} ;
-do  
+do
   for j in {1..3} ;
   do
-    basenum=$((1 + $RANDOM % 12 )) ; 
-    bignum=$(($table * $basenum)); 
-    if [[ $(( $RANDOM % 2 )) -eq  1 ]] 
-    then
-      printf "%10s %s %s = " "$bignum"   "÷"  "$table" 
+    basenum=$((1 + $RANDOM % 12))
+    bignum=$(($table * $basenum))
+    if [[ $(( $RANDOM % 2 )) -eq  1 ]]; then
+      output+="$(printf "%10s %s %s = " "$bignum"   "÷"  "$table")"
     else
-      printf "%10s %s %s = " "$basenum"  "x"  "$table" 
+      output+="$(printf "%10s %s %s = " "$basenum"  "x"  "$table")"
     fi
-  done ; 
-  printf "\n\n\n\n\n\n\n" ; 
-done 
+  done
+  output+="\n\n\n\n\n\n\n"
+done
 
-printf "   +" ;  for i in {0..12} ; do  printf "%s" "---+" ; done ; printf "\n"
-printf "   |" ;  for i in {0..12} ; do  printf "%s" "   |" ; done ; printf "\n"
-printf "   +" ;  for i in {0..12} ; do  printf "%s" "---+" ; done ; printf "\n"
-printf "    0 " ; for i in {1..12} ; do printf "%4d" $i ; done ; printf "\n" 
+if $number_bar ; then
+  output+="   +"
+  for i in {0..12} ; do
+    output+="---+"
+  done
+  output+="\n   |"
+  for i in {0..12} ; do
+    output+="   |"
+  done
+  output+="\n   +"
+  for i in {0..12} ; do
+    output+="---+"
+  done
+  output+="\n    0 "
+  for i in {1..12} ; do
+    output+=$(printf "%4d" $i)
+  done
+  output+="\n"
+fi
 
-) \
-| paps \
-| lpr
+if $print_to_printer ; then
+  (figlet "$table times table" ; echo -e "$output") | paps | lpr
+else
+  figlet "$table times table"
+  echo -e "$output"
+fi
+
