@@ -45,9 +45,11 @@ if $results ; then
 fi
 
 if $print_to_printer ; then
-  (figlet "Multiplication HxH" ; echo -e "$output") | paps | lpr
+  (figlet "Multiplication
+HxH" ; echo -e "$output") | paps | lpr
 else
-  figlet "Multiplication HxH"
+  figlet "Multiplication
+HxH"
   echo -e "$output"
 fi
 
